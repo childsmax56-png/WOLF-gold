@@ -1208,18 +1208,23 @@ export default function App() {
 
       if (audioRef.current) {
         const directUrl = `https://pixeldrain.com/api/file/${pdId}`;
-        // Remove crossOrigin so Pixeldrain serves without CORS restrictions
-        audioRef.current.removeAttribute('crossorigin');
-        audioRef.current.onerror = () => {
-          const err = audioRef.current?.error;
-          showToast(`Audio load error: code ${err?.code} - ${err?.message}`);
-        };
-        audioRef.current.src = directUrl;
-        audioRef.current.volume = volume;
-        if (autoPlay) audioRef.current.play().catch(e => {
-          console.error("Pixeldrain play failed", e.name, e.message);
-          showToast(`Play error: ${e.name}: ${e.message}`);
-        });
+        audioRef.current.setAttribute('crossorigin', 'anonymous');
+        try {
+          showToast(`Loading ${directUrl}`);
+          const resp = await fetch(directUrl, { mode: 'cors' });
+          if (!resp.ok) throw new Error(`${resp.status} from ${directUrl}`);
+          const blob = await resp.blob();
+          const blobUrl = URL.createObjectURL(blob);
+          audioRef.current.src = blobUrl;
+          audioRef.current.volume = volume;
+          if (autoPlay) audioRef.current.play().catch(e => {
+            console.error("Pixeldrain play failed", e.name, e.message);
+            showToast(`Play error: ${e.name}: ${e.message}`);
+          });
+        } catch (err) {
+          console.error("Pixeldrain fetch failed:", err);
+          showToast(`Failed: ${err instanceof Error ? err.message : String(err)}`);
+        }
       }
     } else if (rawUrl.includes('youtube.com/watch') || rawUrl.includes('youtu.be/')) {
       const ytMatch = rawUrl.match(/[?&]v=([A-Za-z0-9_-]+)/) ?? rawUrl.match(/youtu\.be\/([A-Za-z0-9_-]+)/);
