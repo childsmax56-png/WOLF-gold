@@ -1183,6 +1183,28 @@ export default function App() {
 
       const actualEraName = (song as any).realEra?.name || era.name;
       
+    } else if (rawUrl.includes('pixeldrain.com/u/')) {
+      const pdId = rawUrl.split('pixeldrain.com/u/')[1]?.split('/')[0]?.split('?')[0];
+      if (!pdId) { window.open(rawUrl, '_blank'); return; }
+      const streamUrl = `https://pixeldrain.com/api/file/${pdId}`;
+      const playableSongs = contextTracks && contextTracks.length > 0 ? contextTracks : getPlayableSongs(era);
+      setPlaylist(playableSongs);
+      const newIndex = playableSongs.findIndex(s => s.name === song.name && (s.url || (s.urls && s.urls[0]) || '') === rawUrl);
+      setCurrentSongIndex(newIndex >= 0 ? newIndex : 0);
+      if (resetShuffleHistory) { setShuffledQueue(generateShuffledQueue(playableSongs.length, newIndex >= 0 ? newIndex : 0)); setIsRandomMode(isRandomSelection); }
+      setHasLoopedOnce(false);
+      setActivePlayer('audio');
+      setCurrentSong(song);
+      setCurrentEra(era);
+      setIsPlaying(autoPlay);
+      setIsPlayerClosed(false);
+      scrobbledRef.current = false;
+      songStartTimeRef.current = Math.floor(Date.now() / 1000);
+      if (audioRef.current) {
+        audioRef.current.src = streamUrl;
+        audioRef.current.volume = volume;
+        if (autoPlay) audioRef.current.play().catch(e => { if (e.name !== 'AbortError') console.error("Audio play failed", e); });
+      }
     } else if (rawUrl.includes('youtube.com/watch') || rawUrl.includes('youtu.be/')) {
       const ytMatch = rawUrl.match(/[?&]v=([A-Za-z0-9_-]+)/) ?? rawUrl.match(/youtu\.be\/([A-Za-z0-9_-]+)/);
       const videoId = ytMatch?.[1];
