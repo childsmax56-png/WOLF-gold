@@ -1209,7 +1209,7 @@ export default function App() {
         const directUrl = `https://pixeldrain.com/api/file/${pdId}`;
         try {
           const resp = await fetch(directUrl);
-          if (!resp.ok) throw new Error(`Pixeldrain returned ${resp.status}`);
+          if (!resp.ok) throw new Error(`Pixeldrain returned ${resp.status} for ${directUrl}`);
           const blob = await resp.blob();
           const blobUrl = URL.createObjectURL(blob);
           audioRef.current.src = blobUrl;
