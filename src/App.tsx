@@ -1097,8 +1097,7 @@ export default function App() {
       const isNotAvailable = isSongNotAvailable(s, rawUrl);
       return rawUrl && (
         rawUrl.includes('pillows.su/f/') ||
-        rawUrl.includes('temp.imgur.gg/f/') ||
-        rawUrl.includes('pixeldrain.com/u/')
+        rawUrl.includes('temp.imgur.gg/f/')
       ) && !isNotAvailable;
     });
   };
@@ -1188,9 +1187,6 @@ export default function App() {
 
       const actualEraName = (song as any).realEra?.name || era.name;
       
-    } else if (rawUrl.includes('pixeldrain.com/u/')) {
-      // Pixeldrain blocks hotlinking — use their official viewer as an iframe embed
-      setPopupUrl(rawUrl);
     } else if (rawUrl.includes('youtube.com/watch') || rawUrl.includes('youtu.be/')) {
       const ytMatch = rawUrl.match(/[?&]v=([A-Za-z0-9_-]+)/) ?? rawUrl.match(/youtu\.be\/([A-Za-z0-9_-]+)/);
       const videoId = ytMatch?.[1];
