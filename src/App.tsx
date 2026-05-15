@@ -1190,7 +1190,7 @@ export default function App() {
     } else if (rawUrl.includes('pixeldrain.com/u/')) {
       const pdId = rawUrl.split('pixeldrain.com/u/')[1]?.split('/')[0]?.split('?')[0];
       if (!pdId) { window.open(rawUrl, '_blank'); return; }
-      const streamUrl = `/api/pixeldrain-proxy?id=${pdId}`;
+
       const playableSongs = contextTracks && contextTracks.length > 0 ? contextTracks : getPlayableSongs(era);
       setPlaylist(playableSongs);
       const newIndex = playableSongs.findIndex(s => s.name === song.name && (s.url || (s.urls && s.urls[0]) || '') === rawUrl);
@@ -1204,10 +1204,21 @@ export default function App() {
       setIsPlayerClosed(false);
       scrobbledRef.current = false;
       songStartTimeRef.current = Math.floor(Date.now() / 1000);
+
       if (audioRef.current) {
-        audioRef.current.src = streamUrl;
-        audioRef.current.volume = volume;
-        if (autoPlay) audioRef.current.play().catch(e => { if (e.name !== 'AbortError') console.error("Audio play failed", e); });
+        const proxyUrl = `/api/pixeldrain-proxy?id=${pdId}`;
+        try {
+          const resp = await fetch(proxyUrl);
+          if (!resp.ok) throw new Error(`Pixeldrain returned ${resp.status}`);
+          const blob = await resp.blob();
+          const blobUrl = URL.createObjectURL(blob);
+          audioRef.current.src = blobUrl;
+          audioRef.current.volume = volume;
+          if (autoPlay) audioRef.current.play().catch(e => { if (e.name !== 'AbortError') console.error("Pixeldrain play failed", e); });
+        } catch (err) {
+          console.error("Pixeldrain fetch failed:", err);
+          showToast(`Could not load audio: ${err instanceof Error ? err.message : String(err)}`);
+        }
       }
     } else if (rawUrl.includes('youtube.com/watch') || rawUrl.includes('youtu.be/')) {
       const ytMatch = rawUrl.match(/[?&]v=([A-Za-z0-9_-]+)/) ?? rawUrl.match(/youtu\.be\/([A-Za-z0-9_-]+)/);
