@@ -1189,47 +1189,8 @@ export default function App() {
       const actualEraName = (song as any).realEra?.name || era.name;
       
     } else if (rawUrl.includes('pixeldrain.com/u/')) {
-      const pdId = rawUrl.split('pixeldrain.com/u/')[1]?.split('/')[0]?.split('?')[0];
-      if (!pdId) { window.open(rawUrl, '_blank'); return; }
-
-      const playableSongs = contextTracks && contextTracks.length > 0 ? contextTracks : getPlayableSongs(era);
-      setPlaylist(playableSongs);
-      const newIndex = playableSongs.findIndex(s => s.name === song.name && (s.url || (s.urls && s.urls[0]) || '') === rawUrl);
-      setCurrentSongIndex(newIndex >= 0 ? newIndex : 0);
-      if (resetShuffleHistory) { setShuffledQueue(generateShuffledQueue(playableSongs.length, newIndex >= 0 ? newIndex : 0)); setIsRandomMode(isRandomSelection); }
-      setHasLoopedOnce(false);
-      setActivePlayer('audio');
-      setCurrentSong(song);
-      setCurrentEra(era);
-      setIsPlaying(autoPlay);
-      setIsPlayerClosed(false);
-      scrobbledRef.current = false;
-      songStartTimeRef.current = Math.floor(Date.now() / 1000);
-
-      if (audioRef.current) {
-        const proxyUrl = `/api/pixeldrain-proxy?id=${pdId}`;
-        audioRef.current.setAttribute('crossorigin', 'anonymous');
-        try {
-          const resp = await fetch(proxyUrl);
-          if (!resp.ok) {
-            const text = await resp.text().catch(() => '');
-            throw new Error(`proxy ${resp.status}: ${text.slice(0, 100)}`);
-          }
-          const blob = await resp.blob();
-          const blobUrl = URL.createObjectURL(blob);
-          audioRef.current.src = blobUrl;
-          audioRef.current.volume = volume;
-          if (autoPlay) audioRef.current.play().catch(e => {
-            if (e.name !== 'AbortError') {
-              console.error("Pixeldrain play failed", e.name, e.message);
-              showToast(`Play error: ${e.name}`);
-            }
-          });
-        } catch (err) {
-          console.error("Pixeldrain fetch failed:", err);
-          showToast(`Could not load audio: ${err instanceof Error ? err.message : String(err)}`);
-        }
-      }
+      // Pixeldrain blocks hotlinking — use their official viewer as an iframe embed
+      setPopupUrl(rawUrl);
     } else if (rawUrl.includes('youtube.com/watch') || rawUrl.includes('youtu.be/')) {
       const ytMatch = rawUrl.match(/[?&]v=([A-Za-z0-9_-]+)/) ?? rawUrl.match(/youtu\.be\/([A-Za-z0-9_-]+)/);
       const videoId = ytMatch?.[1];
@@ -2086,8 +2047,8 @@ let relatedErasArray = (Object.values(data.eras || {}) as Era[])
                 <iframe 
                   src={popupUrl} 
                   className="w-full h-full border-0 absolute inset-0"
-                  allow="fullscreen"
-                  sandbox="allow-scripts allow-same-origin allow-forms allow-popups"
+                  allow="fullscreen; autoplay"
+                  sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-presentation"
                 />
               </div>
             </motion.div>
