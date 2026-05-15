@@ -1206,9 +1206,9 @@ export default function App() {
       songStartTimeRef.current = Math.floor(Date.now() / 1000);
 
       if (audioRef.current) {
-        const proxyUrl = `/api/pixeldrain-proxy?id=${pdId}`;
+        const directUrl = `https://pixeldrain.com/api/file/${pdId}`;
         try {
-          const resp = await fetch(proxyUrl);
+          const resp = await fetch(directUrl);
           if (!resp.ok) throw new Error(`Pixeldrain returned ${resp.status}`);
           const blob = await resp.blob();
           const blobUrl = URL.createObjectURL(blob);
