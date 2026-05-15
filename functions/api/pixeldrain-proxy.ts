@@ -9,7 +9,10 @@ export const onRequestGet: PagesFunction = async (context) => {
   const upstreamUrl = `https://pixeldrain.com/api/file/${id}`;
 
   const upstreamHeaders: Record<string, string> = {
-    'User-Agent': 'Mozilla/5.0',
+    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+    'Referer': `https://pixeldrain.com/u/${id}`,
+    'Accept': 'audio/webm,audio/ogg,audio/wav,audio/*;q=0.9,*/*;q=0.5',
+    'Accept-Language': 'en-US,en;q=0.5',
   };
   const rangeHeader = context.request.headers.get('Range');
   if (rangeHeader) {
