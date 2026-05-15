@@ -581,7 +581,7 @@ export default function App() {
   }
 
   const HARDCODED_SHEET_ID = '1CMwzf-YO7yoNr5d-dsAOGFfHnYfGwXSFh1glniNlrck';
-  const HARDCODED_SHEET_GID = '0';
+  const HARDCODED_SHEET_GID = '1246511510';
 
   useEffect(() => {
     const sheetCsvUrl = getSheetCsvExportUrl(
