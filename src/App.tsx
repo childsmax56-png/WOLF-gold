@@ -1210,9 +1210,16 @@ export default function App() {
         const directUrl = `https://pixeldrain.com/api/file/${pdId}`;
         // Remove crossOrigin so Pixeldrain serves without CORS restrictions
         audioRef.current.removeAttribute('crossorigin');
+        audioRef.current.onerror = () => {
+          const err = audioRef.current?.error;
+          showToast(`Audio load error: code ${err?.code} - ${err?.message}`);
+        };
         audioRef.current.src = directUrl;
         audioRef.current.volume = volume;
-        if (autoPlay) audioRef.current.play().catch(e => { if (e.name !== 'AbortError') console.error("Pixeldrain play failed", e); });
+        if (autoPlay) audioRef.current.play().catch(e => {
+          console.error("Pixeldrain play failed", e.name, e.message);
+          showToast(`Play error: ${e.name}: ${e.message}`);
+        });
       }
     } else if (rawUrl.includes('youtube.com/watch') || rawUrl.includes('youtu.be/')) {
       const ytMatch = rawUrl.match(/[?&]v=([A-Za-z0-9_-]+)/) ?? rawUrl.match(/youtu\.be\/([A-Za-z0-9_-]+)/);
