@@ -1095,7 +1095,11 @@ export default function App() {
     return Object.values(era.data || {}).flat().filter(s => {
       const rawUrl = s.url || (s.urls && s.urls.length > 0 ? s.urls[0] : '');
       const isNotAvailable = isSongNotAvailable(s, rawUrl);
-      return rawUrl && (rawUrl.includes('pillows.su/f/') || rawUrl.includes('temp.imgur.gg/f/')) && !isNotAvailable;
+      return rawUrl && (
+        rawUrl.includes('pillows.su/f/') ||
+        rawUrl.includes('temp.imgur.gg/f/') ||
+        rawUrl.includes('pixeldrain.com/u/')
+      ) && !isNotAvailable;
     });
   };
 
@@ -1186,7 +1190,7 @@ export default function App() {
     } else if (rawUrl.includes('pixeldrain.com/u/')) {
       const pdId = rawUrl.split('pixeldrain.com/u/')[1]?.split('/')[0]?.split('?')[0];
       if (!pdId) { window.open(rawUrl, '_blank'); return; }
-      const streamUrl = `https://pixeldrain.com/api/file/${pdId}`;
+      const streamUrl = `/api/pixeldrain-proxy?id=${pdId}`;
       const playableSongs = contextTracks && contextTracks.length > 0 ? contextTracks : getPlayableSongs(era);
       setPlaylist(playableSongs);
       const newIndex = playableSongs.findIndex(s => s.name === song.name && (s.url || (s.urls && s.urls[0]) || '') === rawUrl);
