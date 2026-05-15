@@ -17,7 +17,25 @@ export const TAG_TOOLTIP_MAP: Record<string, string> = {
   'By WOLFGOLD': 'Leaks & Songs that added by the owner of the site.'
 };
 
-export const CUSTOM_IMAGES: Record<string, string> = {};
+export const CUSTOM_IMAGES: Record<string, string> = {
+  "Bastard": "https://i.ibb.co/Gf2Ty8fX/Radical-Cover.jpg",
+  "Goblin": "https://i.ibb.co/q3JTQrgz/Goblin-Cover.jpg",
+  "Wolf": "https://i.ibb.co/1JjLYgBj/Wolf-Cover-1.png",
+  "Wolf 2010": "https://i.ibb.co/JjYGWz4G/Wolf-2010-Cover-1.png",
+  "Wolf 2012": "https://i.ibb.co/xS4gBJKB/Wolf-2012-Cover.jpg",
+  "Cherry Bomb": "https://i.ibb.co/pBsyCsP4/Soundz-On-Acid-Cover-1.png",
+  "Flower Boy": "https://i.ibb.co/fdGNZJ7C/Flower-Boy-Cover-1.jpg",
+  "Scum Fuck Flower Boy": "https://i.ibb.co/dJGG2rG9/Scum-Fuck-Flower-Boy-Cover.png",
+  "IGOR": "https://i.ibb.co/CKxXxPyZ/IGOR-Cover-1.jpg",
+  "CALL ME IF YOU GET LOST": "https://i.ibb.co/hRKJqmdM/LUMBERJACK-Cover.jpg",
+  "CMIYGL": "https://i.ibb.co/hRKJqmdM/LUMBERJACK-Cover.jpg",
+  "CHROMAKOPIA": "https://i.ibb.co/TqMh0Z8r/Stereotype-Cover-1.png",
+  "Odd Future Tape": "https://i.ibb.co/chSyGqgc/Odd-Future-Tape-Cover.png",
+  "OF Tape Vol. 2": "https://i.ibb.co/fd4GSM9H/Odd-future-tape-vol-2-Cover-1.jpg",
+  "Odd Future Tape Vol. 2": "https://i.ibb.co/fd4GSM9H/Odd-future-tape-vol-2-Cover-1.jpg",
+  "Radical": "https://i.ibb.co/Gf2Ty8fX/Radical-Cover.jpg",
+  "ZIPLOC": "https://i.ibb.co/gL3Fzygf/ZIPLOC-Cover.jpg",
+};
 
 export const ALBUM_RELEASE_DATES: Record<string, string> = {};
 
