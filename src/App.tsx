@@ -23,13 +23,7 @@ import { useSpotify, SpotifyTrack } from './useSpotify';
 import { useYoutube } from './useYoutube';
 import { useSoundCloud } from './useSoundCloud';
 
-const CUSTOM_ALBUM_INFO: Record<string, string[]> = {
-  "The College Dropout": ["1 OG File(s)", "49 Full", "9 Tagged", "2 Partial", "7 Snippet(s)", "0 Stem Bounce(s)", "46 Unavailable"],
-  "The Life Of Pablo": ["51 OG File(s)", "23 Full", "3 Tagged", "7 Partial", "19 Snippet(s)", "2 Stem Bounce(s)", "35 Unavailable"],
-  "Turbo Grafx 16": ["20 OG File(s)", "11 Full", "0 Tagged", "0 Partial", "6 Snippet(s)", "2 Stem Bounce(s)", "50 Unavailable"],
-  "The Elementary School Dropout": ["0 OG File(s)", "0 Full", "0 Tagged", "0 Partial", "3 Snippet(s)", "0 Stem Bounce(s)", "15 Unavailable"],
-  "Wolves": ["1 OG File(s)", "4 Full", "0 Tagged", "1 Partial", "0 Snippet(s)", "0 Stem Bounce(s)", "12 Unavailable"]
-};
+const CUSTOM_ALBUM_INFO: Record<string, string[]> = {};
 
 export interface MvEntry {
   Era: string;
@@ -527,7 +521,20 @@ export default function App() {
 
       const matchedMapKey = Object.keys(ERA_MAPPINGS).find(k => k.toLowerCase() === rawEra.toLowerCase());
       const eraName = matchedMapKey ? ERA_MAPPINGS[matchedMapKey] : rawEra;
-      if (!targetJson.eras?.[eraName]) return;
+      if (!targetJson.eras) targetJson.eras = {};
+      if (!targetJson.eras[eraName]) {
+        targetJson.eras[eraName] = {
+          name: eraName,
+          data: {
+            "OG Files": [],
+            "Full": [],
+            "Tagged": [],
+            "Partial": [],
+            "Snippets & Leaks": [],
+            "Unavailable": []
+          }
+        };
+      }
 
       const rawName = (item[nameKey] || '').trim();
       const nameLines = rawName.split('\n');
@@ -574,7 +581,7 @@ export default function App() {
   }
 
   const HARDCODED_SHEET_ID = '1CMwzf-YO7yoNr5d-dsAOGFfHnYfGwXSFh1glniNlrck';
-  const HARDCODED_SHEET_GID = '1385926980'; // Recent tab
+  const HARDCODED_SHEET_GID = '0';
 
   useEffect(() => {
     const sheetCsvUrl = getSheetCsvExportUrl(
@@ -1741,60 +1748,6 @@ let relatedErasArray = (Object.values(data.eras || {}) as Era[])
     fileInfo: CUSTOM_ALBUM_INFO[era.name] || era.fileInfo
   })) as Era[];
 
-// Order in Related tab: K.T.S.E. → Jesus Is Born → Sunday Service Choir → The Elementary School Dropout
-{
-  const jibIdx = relatedErasArray.findIndex(e => e.name === "Jesus Is Born");
-  const sscIdx = relatedErasArray.findIndex(e => e.name === "Sunday Service Choir");
-
-  const toInsert: Era[] = [];
-  if (jibIdx !== -1) toInsert.push(relatedErasArray[jibIdx]);
-  if (sscIdx !== -1) toInsert.push(relatedErasArray[sscIdx]);
-  [jibIdx, sscIdx].filter(i => i !== -1).sort((a, b) => b - a).forEach(i => relatedErasArray.splice(i, 1));
-
-  // Reinsert after K.T.S.E.
-  const anchor = relatedErasArray.findIndex(e => e.name === "K.T.S.E.");
-  if (anchor !== -1 && toInsert.length > 0) relatedErasArray.splice(anchor + 1, 0, ...toInsert);
-}
-
-// Turbo Grafx 16 and Wolves can end up out of position (Turbo gets renamed from
-// "Turbo Grafx 16", Wolves has no CSV entry). Pull both out and reinsert right after
-// Cruel Winter [V2] so the order is always: CW[V2] → Turbo Grafx 16 → Wolves.
-{
-  const cwV2Idx = erasArray.findIndex(e => e.name === "Cruel Winter [V2]");
-  const turboIdx = erasArray.findIndex(e => e.name === "Turbo Grafx 16" || e.name === "Turbo Grafx 16");
-  const wolvesIdx = erasArray.findIndex(e => e.name === "Wolves");
-
-  if (cwV2Idx !== -1 && turboIdx !== -1 && wolvesIdx !== -1) {
-    const turboEra = erasArray[turboIdx];
-    const wolvesEra = erasArray[wolvesIdx];
-    [turboIdx, wolvesIdx].sort((a, b) => b - a).forEach(i => erasArray.splice(i, 1));
-    const newCwV2Idx = erasArray.findIndex(e => e.name === "Cruel Winter [V2]");
-    erasArray.splice(newCwV2Idx + 1, 0, turboEra, wolvesEra);
-  }
-}
-
-// ERA sort: ensure display order is stable regardless of key insertion order.
-{
-  const yeIdx = erasArray.findIndex(e => e.name === "ye");
-  const ksgIdx = erasArray.findIndex(e => e.name === "KIDS SEE GHOSTS");
-
-  if (yeIdx !== -1 && ksgIdx !== -1 && ksgIdx !== yeIdx + 1) {
-    const ksgEra = erasArray[ksgIdx];
-    erasArray.splice(ksgIdx, 1);
-    const newYeIdx = erasArray.findIndex(e => e.name === "ye");
-    erasArray.splice(newYeIdx + 1, 0, ksgEra);
-  }
-}
-
-// Ongoing should always be the last era. Re-pin it in case it shifted.
-{
-  const ongoingIdx = erasArray.findIndex(e => e.name === "Ongoing");
-  if (ongoingIdx !== -1 && ongoingIdx !== erasArray.length - 1) {
-    const ongoingEra = erasArray[ongoingIdx];
-    erasArray.splice(ongoingIdx, 1);
-    erasArray.push(ongoingEra);
-  }
-}
 
 
   const favoritesEra: Era | null = favoriteKeys.length > 0 ? {
