@@ -435,7 +435,7 @@ export default function App() {
     const sheetId = idMatch[1];
     const gidMatch = sheetUrl.match(/[#&?]gid=(\d+)/);
     const gid = gidMatch ? gidMatch[1] : '0';
-    return `https://docs.google.com/spreadsheets/d/${sheetId}/export?format=csv&gid=${gid}`;
+    return `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=out:csv&gid=${gid}`;
   }
 
   function applyLocalSongs(targetJson: any, localData: any) {
@@ -492,12 +492,19 @@ export default function App() {
   }
 
   function applyTrackerSheetSongs(targetJson: any, sheetData: any) {
-    if (!Array.isArray(sheetData)) return;
+    if (!Array.isArray(sheetData) || sheetData.length === 0) return;
 
-    // Find the actual name key (header is "Name\n(Join The Discord!)")
-    const nameKey = sheetData.length > 0
-      ? Object.keys(sheetData[0]).find(k => k.startsWith('Name')) || 'Name'
-      : 'Name';
+    // Detect column keys flexibly to support both YZYgold and Wolf Gold sheet formats
+    const colKeys = Object.keys(sheetData[0]);
+    const eraKey   = colKeys.find(k => k.startsWith('Era'))   || 'Era';
+    const nameKey  = colKeys.find(k => k.startsWith('Title') || k.startsWith('Name')) || 'Name';
+    const notesKey = colKeys.find(k => k.startsWith('Info') || k.startsWith('Notes')) || 'Notes';
+    const availKey = colKeys.find(k => k.startsWith('Availability') || k.startsWith('Available')) || 'Available Length';
+    const lenKey   = colKeys.find(k => k.startsWith('Length') || k.startsWith('Track Length')) || 'Track Length';
+    const leakKey  = colKeys.find(k => k.startsWith('Leak')) || 'Leak Date';
+    const fileKey  = colKeys.find(k => k.startsWith('File Date')) || 'File Date';
+    const linkKey  = colKeys.find(k => k.startsWith('Link')) || 'Link(s)';
+    const qualKey  = colKeys.find(k => k.startsWith('Quality')) || 'Quality';
 
     const avLenToCategory = (avLen: string, categories: Record<string, Song[]>): string => {
       const al = avLen.toLowerCase().trim();
@@ -510,13 +517,12 @@ export default function App() {
       if (al.includes('snippet')) return find('snippet') || keys[0];
       if (al.includes('stem') || al.includes('bounce')) return find('stem') || find('bounce') || keys[0];
       if (al === 'beat only') return find('beat') || find('full') || keys[0];
-      if (al === 'confirmed' || al === 'unavailable' || al === '') return find('unavailable') || find('confirmed') || keys[keys.length - 1];
+      if (al === 'lost' || al === 'confirmed' || al === 'unavailable' || al === '') return find('unavailable') || find('confirmed') || keys[keys.length - 1];
       return keys[0];
     };
 
     sheetData.forEach((item: any) => {
-      const rawEra = (item.Era || '').trim();
-      // Skip era header rows (file count summaries) — their Era cell is multiline
+      const rawEra = (item[eraKey] || '').trim();
       if (!rawEra || rawEra.includes('\n')) return;
 
       const matchedMapKey = Object.keys(ERA_MAPPINGS).find(k => k.toLowerCase() === rawEra.toLowerCase());
@@ -542,26 +548,26 @@ export default function App() {
       const extra = nameLines.slice(1).join('\n').trim() || undefined;
       if (!songName) return;
 
-      let rawUrl = (item['Link(s)'] || '').trim();
+      let rawUrl = (item[linkKey] || '').trim();
       const linkMatch = rawUrl.match(/\]\((.*?)\)/);
       if (linkMatch?.[1]) rawUrl = linkMatch[1];
 
+      const avail = (item[availKey] || '').trim();
       const newSong: Song = {
         name: songName,
         extra,
-        description: item.Notes || '',
-        track_length: item['Track Length'] || '',
-        leak_date: item['Leak\nDate'] || item['Leak Date'] || '',
-        file_date: item['File\nDate'] || item['File Date'] || '',
-        available_length: item['Available Length'] || '',
-        quality: item.Quality || '',
+        description: item[notesKey] || '',
+        track_length: item[lenKey] || '',
+        leak_date: item[leakKey] || '',
+        file_date: item[fileKey] || '',
+        available_length: avail,
+        quality: item[qualKey] || '',
         url: rawUrl,
         urls: rawUrl ? [rawUrl] : [],
       };
 
       const categories = targetJson.eras[eraName].data || {};
 
-      // Skip if a song with the same name and credits already exists in the era
       const nameNorm = songName.toLowerCase().trim();
       const extraNorm = (extra || '').toLowerCase().trim();
       const alreadyExists = Object.values(categories).some((list: any) =>
@@ -572,7 +578,7 @@ export default function App() {
       );
       if (alreadyExists) return;
 
-      const catKey = avLenToCategory(item['Available Length'] || '', categories);
+      const catKey = avLenToCategory(avail, categories);
       if (catKey) {
         if (!categories[catKey]) categories[catKey] = [];
         (categories[catKey] as Song[]).push(newSong);
@@ -587,7 +593,7 @@ export default function App() {
     const sheetCsvUrl = getSheetCsvExportUrl(
       settings.googleSheetsUrl || `https://docs.google.com/spreadsheets/d/${HARDCODED_SHEET_ID}/edit#gid=${HARDCODED_SHEET_GID}`
     );
-    const recentTabCsvUrl = `https://docs.google.com/spreadsheets/d/${HARDCODED_SHEET_ID}/export?format=csv&gid=${HARDCODED_SHEET_GID}`;
+    const recentTabCsvUrl = `https://docs.google.com/spreadsheets/d/${HARDCODED_SHEET_ID}/gviz/tq?tqx=out:csv&gid=${HARDCODED_SHEET_GID}`;
 
     const FETCH_TIMEOUT = 20000;
     Promise.all([
